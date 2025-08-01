@@ -123,7 +123,7 @@ class LoadControllerTest {
                                 .andExpect(jsonPath("$.content[0].id").value(testLoadId.toString()))
                                 .andExpect(jsonPath("$.page").value(0))
                                 .andExpect(jsonPath("$.size").value(10))
-                                .andExpected(jsonPath("$.totalElements").value(1));
+                                .andExpect(jsonPath("$.totalElements").value(1));
         }
 
         @Test

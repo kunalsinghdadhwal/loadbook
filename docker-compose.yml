@@ -16,7 +16,9 @@ services:
       - loadbook-network
 
   loadbook-app:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: loadbook-app
     depends_on:
       - postgres
