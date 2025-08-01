@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: loadbook-postgres
+    environment:
+      POSTGRES_DB: loadbook
+      POSTGRES_USER: loadbook_user
+      POSTGRES_PASSWORD: loadbook_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - loadbook-network
+
+  loadbook-app:
+    build: .
+    container_name: loadbook-app
+    depends_on:
+      - postgres
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/loadbook
+      SPRING_DATASOURCE_USERNAME: loadbook_user
+      SPRING_DATASOURCE_PASSWORD: loadbook_password
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    ports:
+      - "8080:8080"
+    networks:
+      - loadbook-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  loadbook-network:
+    driver: bridge
