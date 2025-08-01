@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class LoadMapper {
-    
+
     /**
      * Convert CreateLoadRequest to Load entity
      */
@@ -18,7 +18,7 @@ public class LoadMapper {
         if (request == null) {
             return null;
         }
-        
+
         Load load = new Load();
         load.setShipperId(request.getShipperId());
         load.setFacility(toFacilityEntity(request.getFacility()));
@@ -27,10 +27,10 @@ public class LoadMapper {
         load.setNoOfTrucks(request.getNoOfTrucks());
         load.setWeight(request.getWeight());
         load.setComment(request.getComment());
-        
+
         return load;
     }
-    
+
     /**
      * Convert Load entity to LoadResponse
      */
@@ -38,7 +38,7 @@ public class LoadMapper {
         if (load == null) {
             return null;
         }
-        
+
         LoadResponse response = new LoadResponse();
         response.setId(load.getId());
         response.setShipperId(load.getShipperId());
@@ -51,10 +51,10 @@ public class LoadMapper {
         response.setStatus(load.getStatus());
         response.setDatePosted(load.getDatePosted());
         response.setUpdatedAt(load.getUpdatedAt());
-        
+
         return response;
     }
-    
+
     /**
      * Update Load entity from UpdateLoadRequest
      */
@@ -62,32 +62,32 @@ public class LoadMapper {
         if (load == null || request == null) {
             return;
         }
-        
+
         if (request.getFacility() != null) {
             load.setFacility(toFacilityEntity(request.getFacility()));
         }
-        
+
         if (request.getProductType() != null) {
             load.setProductType(request.getProductType());
         }
-        
+
         if (request.getTruckType() != null) {
             load.setTruckType(request.getTruckType());
         }
-        
+
         if (request.getNoOfTrucks() != null) {
             load.setNoOfTrucks(request.getNoOfTrucks());
         }
-        
+
         if (request.getWeight() != null) {
             load.setWeight(request.getWeight());
         }
-        
+
         if (request.getComment() != null) {
             load.setComment(request.getComment());
         }
     }
-    
+
     /**
      * Convert FacilityDto to Facility entity
      */
@@ -95,16 +95,16 @@ public class LoadMapper {
         if (facilityDto == null) {
             return null;
         }
-        
+
         Facility facility = new Facility();
         facility.setLoadingPoint(facilityDto.getLoadingPoint());
         facility.setUnloadingPoint(facilityDto.getUnloadingPoint());
         facility.setLoadingDate(facilityDto.getLoadingDate());
         facility.setUnloadingDate(facilityDto.getUnloadingDate());
-        
+
         return facility;
     }
-    
+
     /**
      * Convert Facility entity to FacilityDto
      */
@@ -112,13 +112,13 @@ public class LoadMapper {
         if (facility == null) {
             return null;
         }
-        
+
         FacilityDto facilityDto = new FacilityDto();
         facilityDto.setLoadingPoint(facility.getLoadingPoint());
         facilityDto.setUnloadingPoint(facility.getUnloadingPoint());
         facilityDto.setLoadingDate(facility.getLoadingDate());
         facilityDto.setUnloadingDate(facility.getUnloadingDate());
-        
+
         return facilityDto;
     }
 }

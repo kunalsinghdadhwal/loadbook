@@ -13,31 +13,30 @@ import java.util.List;
 
 @Configuration
 public class OpenApiConfig {
-    
-    @Value("${spring.application.name}")
-    private String appName;
-    
-    @Bean
-    public OpenAPI customOpenAPI() {
-        return new OpenAPI()
-                .info(new Info()
-                        .title("LoadBook API")
-                        .description("Backend system for managing Load & Booking operations efficiently")
-                        .version("1.0.0")
-                        .contact(new Contact()
-                                .name("LoadBook Team")
-                                .email("support@loadbook.com")
-                                .url("https://github.com/kunal/loadbook"))
-                        .license(new License()
-                                .name("MIT License")
-                                .url("https://opensource.org/licenses/MIT")))
-                .servers(List.of(
-                        new Server()
-                                .url("http://localhost:8080")
-                                .description("Development Server"),
-                        new Server()
-                                .url("https://api.loadbook.com")
-                                .description("Production Server")
-                ));
-    }
+
+        @Value("${spring.application.name}")
+        private String appName;
+
+        @Bean
+        public OpenAPI customOpenAPI() {
+                return new OpenAPI()
+                                .info(new Info()
+                                                .title("LoadBook API")
+                                                .description("Backend system for managing Load & Booking operations efficiently")
+                                                .version("1.0.0")
+                                                .contact(new Contact()
+                                                                .name("LoadBook Team")
+                                                                .email("support@loadbook.com")
+                                                                .url("https://github.com/kunal/loadbook"))
+                                                .license(new License()
+                                                                .name("MIT License")
+                                                                .url("https://opensource.org/licenses/MIT")))
+                                .servers(List.of(
+                                                new Server()
+                                                                .url("http://localhost:8080")
+                                                                .description("Development Server"),
+                                                new Server()
+                                                                .url("https://api.loadbook.com")
+                                                                .description("Production Server")));
+        }
 }
