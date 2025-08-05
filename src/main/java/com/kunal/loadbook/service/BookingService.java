@@ -59,23 +59,16 @@ public class BookingService {
             throw BusinessLogicException.loadAlreadyCancelled();
         }
 
-        if (load.getStatus() == LoadStatus.BOOKED) {
-            throw BusinessLogicException.loadAlreadyBooked();
-        }
-
         // Check if booking already exists for this load and transporter
         if (bookingRepository.existsByLoadIdAndTransporterId(request.getLoadId(), request.getTransporterId())) {
             throw BusinessLogicException.bookingAlreadyExists();
         }
 
-        // Create booking
+        // Create booking with PENDING status (default)
         Booking booking = bookingMapper.toEntity(request);
         booking.setLoad(load);
 
         Booking savedBooking = bookingRepository.save(booking);
-
-        // Update load status to BOOKED
-        loadService.updateLoadStatus(load.getId(), LoadStatus.BOOKED);
 
         logger.info("Booking created successfully with ID: {}", savedBooking.getId());
         return bookingMapper.toResponse(savedBooking);
@@ -177,9 +170,18 @@ public class BookingService {
             throw new BusinessLogicException("Cannot accept booking for a cancelled load");
         }
 
+        // Check if load is already booked (has another accepted booking)
+        long acceptedBookingsCount = bookingRepository.countAcceptedBookingsByLoadId(load.getId());
+        if (acceptedBookingsCount > 0) {
+            throw new BusinessLogicException("Load is already booked by another transporter");
+        }
+
         // Update booking status
         booking.setStatus(BookingStatus.ACCEPTED);
         Booking updatedBooking = bookingRepository.save(booking);
+
+        // Update load status to BOOKED
+        loadService.updateLoadStatus(load.getId(), LoadStatus.BOOKED);
 
         // Reject all other pending bookings for this load
         List<Booking> otherPendingBookings = bookingRepository.findByLoadIdAndStatus(

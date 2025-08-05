@@ -10,6 +10,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.stream.Collectors;
 
@@ -117,6 +118,29 @@ public class GlobalExceptionHandler {
                                 request.getDescription(false).replace("uri=", ""));
 
                 return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        }
+
+        /**
+         * Handle NoResourceFoundException (for favicon.ico and other static resources)
+         */
+        @ExceptionHandler(NoResourceFoundException.class)
+        public ResponseEntity<ErrorResponse> handleNoResourceFoundException(
+                        NoResourceFoundException ex, WebRequest request) {
+
+                // Don't log favicon.ico as errors, just as debug
+                if (request.getDescription(false).contains("favicon.ico")) {
+                        logger.debug("Static resource not found: {}", ex.getMessage());
+                } else {
+                        logger.warn("Static resource not found: {}", ex.getMessage());
+                }
+
+                ErrorResponse errorResponse = new ErrorResponse(
+                                "Resource not found: " + ex.getResourcePath(),
+                                HttpStatus.NOT_FOUND.value(),
+                                "RESOURCE_NOT_FOUND",
+                                request.getDescription(false).replace("uri=", ""));
+
+                return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
         }
 
         /**
