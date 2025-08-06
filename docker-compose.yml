@@ -1,65 +1,87 @@
 version: "3.8"
 
 services:
+  # PostgreSQL Database Service
   postgres:
     image: postgres:15-alpine
     container_name: loadbook-postgres
+    restart: unless-stopped
     environment:
       POSTGRES_DB: loadbook
       POSTGRES_USER: loadbook_user
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-loadbook_password}
-      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=C --lc-ctype=C"
+      POSTGRES_PASSWORD: loadbook_password
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./src/main/resources/sample-data.sql:/docker-entrypoint-initdb.d/sample-data.sql:ro
     networks:
       - loadbook-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U loadbook_user -d loadbook"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 30s
-    restart: unless-stopped
-
-  loadbook-app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: loadbook-app
-    depends_on:
-      postgres:
-        condition: service_healthy
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/loadbook
-      SPRING_DATASOURCE_USERNAME: loadbook_user
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-loadbook_password}
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
-      JAVA_OPTS: "${JAVA_OPTS:--Xms512m -Xmx1024m -XX:+UseG1GC -XX:+UseStringDeduplication}"
-      SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: 15
-      SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE: 5
-      SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT: 20000
-      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,metrics,info
-    ports:
-      - "${APP_PORT:-8080}:8080"
-    networks:
-      - loadbook-network
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      test: ["CMD-SHELL", "pg_isready"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 60s
-    restart: unless-stopped
 
+  # LoadBook Spring Boot Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: loadbook-app
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      # Spring Boot Configuration
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_APPLICATION_NAME: loadbook
+      SERVER_PORT: 8080
+
+      # Database Configuration
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/loadbook
+      SPRING_DATASOURCE_USERNAME: loadbook_user
+      SPRING_DATASOURCE_PASSWORD: loadbook_password
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
+
+      # JPA/Hibernate Configuration
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
+      SPRING_JPA_SHOW_SQL: "false"
+      SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: "true"
+
+      # Connection Pool Configuration
+      SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT: 20000
+      SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: 10
+      SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE: 2
+      SPRING_DATASOURCE_HIKARI_IDLE_TIMEOUT: 600000
+      SPRING_DATASOURCE_HIKARI_MAX_LIFETIME: 1800000
+
+      # Actuator Configuration
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,info,metrics
+      MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS: "always"
+
+      # Java Configuration
+      JAVA_OPTS: "-Xms256m -Xmx512m -XX:+UseG1GC"
+
+      # Logging Configuration
+      LOGGING_LEVEL_COM_KUNAL_LOADBOOK: INFO
+      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB: INFO
+      LOGGING_LEVEL_ORG_HIBERNATE_SQL: WARN
+
+    ports:
+      - "8080:8080"
+    networks:
+      - loadbook-network
+
+# Persistent volumes
 volumes:
   postgres_data:
     driver: local
 
+# Network configuration
 networks:
   loadbook-network:
     driver: bridge
+
