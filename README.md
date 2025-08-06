@@ -46,11 +46,7 @@ cd loadbook
 
 2. Start the services:
 ```bash
-# Development environment
 docker-compose up -d
-
-# Production environment
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 ```
 
 3. Access the application:
