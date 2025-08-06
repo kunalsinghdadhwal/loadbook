@@ -7,13 +7,22 @@ services:
     environment:
       POSTGRES_DB: loadbook
       POSTGRES_USER: loadbook_user
-      POSTGRES_PASSWORD: loadbook_password
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-loadbook_password}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=C --lc-ctype=C"
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./src/main/resources/sample-data.sql:/docker-entrypoint-initdb.d/sample-data.sql:ro
     networks:
       - loadbook-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U loadbook_user -d loadbook"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
 
   loadbook-app:
     build:
@@ -21,20 +30,35 @@ services:
       dockerfile: Dockerfile
     container_name: loadbook-app
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     environment:
+      SPRING_PROFILES_ACTIVE: docker
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/loadbook
       SPRING_DATASOURCE_USERNAME: loadbook_user
-      SPRING_DATASOURCE_PASSWORD: loadbook_password
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-loadbook_password}
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
+      JAVA_OPTS: "${JAVA_OPTS:--Xms512m -Xmx1024m -XX:+UseG1GC -XX:+UseStringDeduplication}"
+      SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: 15
+      SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE: 5
+      SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT: 20000
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,metrics,info
     ports:
-      - "8080:8080"
+      - "${APP_PORT:-8080}:8080"
     networks:
       - loadbook-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
     restart: unless-stopped
 
 volumes:
   postgres_data:
+    driver: local
 
 networks:
   loadbook-network:

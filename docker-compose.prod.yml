@@ -1,0 +1,105 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: loadbook-postgres-prod
+    environment:
+      POSTGRES_DB: loadbook
+      POSTGRES_USER: loadbook_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-loadbook_secure_password}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=en_US.utf8 --lc-ctype=en_US.utf8"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backups:/backups
+      - ./src/main/resources/sample-data.sql:/docker-entrypoint-initdb.d/sample-data.sql:ro
+    networks:
+      - loadbook-network
+    command: >
+      postgres 
+      -c max_connections=100
+      -c shared_buffers=256MB
+      -c effective_cache_size=1GB
+      -c maintenance_work_mem=64MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c default_statistics_target=100
+      -c random_page_cost=1.1
+      -c effective_io_concurrency=200
+      -c work_mem=4MB
+      -c min_wal_size=1GB
+      -c max_wal_size=4GB
+      -c logging_collector=on
+      -c log_directory=/var/log/postgresql
+      -c log_filename=postgresql.log
+      -c log_statement=none
+      -c log_min_duration_statement=1000
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U loadbook_user -d loadbook"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+
+  loadbook-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: loadbook-app-prod
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/loadbook
+      SPRING_DATASOURCE_USERNAME: loadbook_user
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-loadbook_secure_password}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
+      JAVA_OPTS: "-Xms1024m -Xmx2048m -XX:+UseG1GC -XX:+UseStringDeduplication -XX:MaxGCPauseMillis=200 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/app/logs"
+      SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: 20
+      SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE: 10
+      SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT: 20000
+      SPRING_DATASOURCE_HIKARI_IDLE_TIMEOUT: 600000
+      LOGGING_LEVEL_COM_KUNAL_LOADBOOK: INFO
+      MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: health,metrics,info
+    ports:
+      - "8080:8080"
+    volumes:
+      - app_logs:/app/logs
+    networks:
+      - loadbook-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2.0'
+        reservations:
+          memory: 1G
+          cpus: '1.0'
+
+volumes:
+  postgres_data:
+    driver: local
+  app_logs:
+    driver: local
+
+networks:
+  loadbook-network:
+    driver: bridge

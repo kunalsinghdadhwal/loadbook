@@ -1,33 +1,119 @@
 # LoadBook - Load & Booking Management System
 
-A comprehensive backend system built with Spring Boot and PostgreSQL for managing Load & Booking operations efficiently. The system is optimized for performance, security, and scalability.
+LoadBook is a comprehensive backend system built with Spring Boot and PostgreSQL for managing load and booking operations in logistics. The system provides a robust API-first architecture designed for scalability, performance, and maintainability.
 
-## 🚀 Features
+## Overview
 
-- **Load Management**: Create, update, delete, and retrieve loads with comprehensive filtering and pagination
-- **Booking Management**: Handle booking requests with status transitions and business rule validation
-- **Status Management**: Automated status transitions based on business logic
-- **API Documentation**: Comprehensive Swagger/OpenAPI documentation
-- **Robust Testing**: High test coverage with unit, integration, and controller tests
-- **Exception Handling**: Global exception handling with structured error responses
-- **Database Design**: Normalized schema with foreign key relationships and constraints
+This application serves as a complete logistics management platform that handles load creation, booking requests, and automated status workflows. It features advanced filtering capabilities, comprehensive business rule enforcement, and production-ready containerization with PostgreSQL integration.
 
-## 📋 API Specifications
+## Key Features
+
+- **Load Management**: Complete CRUD operations with advanced filtering and pagination support
+- **Booking Management**: Automated booking workflows with status transitions and business validation
+- **Status Management**: Rule-based status transitions with comprehensive business logic enforcement
+- **API Documentation**: Interactive Swagger/OpenAPI 3 documentation with complete endpoint coverage
+- **Testing Coverage**: Comprehensive test suite including unit, integration, and controller tests
+- **Exception Handling**: Global exception management with structured error responses
+- **Database Design**: Normalized PostgreSQL schema with proper relationships and constraints
+- **Container Support**: Production-ready Docker configuration with PostgreSQL integration
+
+## Technology Stack
+
+- **Framework**: Spring Boot 3.5.4
+- **Database**: PostgreSQL 15 (H2 for testing environments)
+- **Runtime**: Java 17
+- **Build System**: Gradle 7.x
+- **Documentation**: SpringDoc OpenAPI 3
+- **Testing**: JUnit 5, Mockito, Spring Boot Test
+- **Containerization**: Docker & Docker Compose
+
+## Quick Start
+
+### Prerequisites
+
+- Java 17 or higher
+- Docker and Docker Compose
+- Git
+
+### Docker Deployment
+
+1. Clone and build the application:
+```bash
+git clone <repository-url>
+cd loadbook
+./gradlew build
+```
+
+2. Start the services:
+```bash
+# Development environment
+docker-compose up -d
+
+# Production environment
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+```
+
+3. Access the application:
+   - **API Base**: http://localhost:8080
+   - **Swagger UI**: http://localhost:8080/swagger-ui.html
+   - **API Docs**: http://localhost:8080/api-docs
+   - **Health Check**: http://localhost:8080/actuator/health
+
+### Local Development
+
+1. Configure PostgreSQL database:
+```sql
+CREATE DATABASE loadbook;
+CREATE USER loadbook_user WITH PASSWORD 'loadbook_password';
+GRANT ALL PRIVILEGES ON DATABASE loadbook TO loadbook_user;
+```
+
+2. Configure application properties in `src/main/resources/application-dev.properties`:
+```properties
+spring.datasource.url=jdbc:postgresql://localhost:5432/loadbook
+spring.datasource.username=loadbook_user
+spring.datasource.password=loadbook_password
+```
+
+3. Run the application:
+```bash
+./gradlew bootRun --args='--spring.profiles.active=dev'
+```
+
+## API Specifications
+
+### Load Entity Structure
+```json
+{
+  "id": "UUID",
+  "shipperId": "String", 
+  "facility": {
+    "loadingPoint": "String",
+    "unloadingPoint": "String",
+    "loadingDate": "Timestamp",
+    "unloadingDate": "Timestamp"
+  },
+  "productType": "String",
+  "truckType": "String", 
+  "noOfTrucks": "int",
+  "weight": "double",
+  "comment": "String",
+## Data Models
 
 ### Load Entity
 ```json
 {
   "id": "UUID",
-  "shipperId": "String",
+  "shipperId": "String", 
   "facility": {
     "loadingPoint": "String",
-    "unloadingPoint": "String", 
+    "unloadingPoint": "String",
     "loadingDate": "Timestamp",
     "unloadingDate": "Timestamp"
   },
   "productType": "String",
-  "truckType": "String",
-  "noOfTrucks": "int",
+  "truckType": "String", 
+  "noOfTrucks": "integer",
   "weight": "double",
   "comment": "String",
   "datePosted": "Timestamp",
@@ -41,73 +127,19 @@ A comprehensive backend system built with Spring Boot and PostgreSQL for managin
   "id": "UUID",
   "loadId": "UUID",
   "transporterId": "String",
-  "proposedRate": "double",
+  "proposedRate": "double", 
   "comment": "String",
   "status": "PENDING | ACCEPTED | REJECTED",
   "requestedAt": "Timestamp"
 }
 ```
 
-## 🔧 Technology Stack
+## API Reference
 
-- **Backend**: Spring Boot 3.5.4
-- **Database**: PostgreSQL (with H2 for testing)
-- **JVM**: Java 17
-- **Documentation**: SpringDoc OpenAPI 3
-- **Testing**: JUnit 5, Mockito, Spring Boot Test
-- **Build Tool**: Gradle
+### Load Operations
 
-## 🛠️ Setup Instructions
-
-### Prerequisites
-- Java 17 or higher
-- PostgreSQL 12 or higher
-- Gradle 7.x or higher (or use the included wrapper)
-
-### Database Setup
-1. Install PostgreSQL and create a database:
-```sql
-CREATE DATABASE loadbook;
-CREATE USER loadbook_user WITH PASSWORD 'loadbook_password';
-GRANT ALL PRIVILEGES ON DATABASE loadbook TO loadbook_user;
-```
-
-### Application Setup
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd loadbook
-```
-
-2. Update database configuration in `src/main/resources/application.properties`:
-```properties
-spring.datasource.url=jdbc:postgresql://localhost:5432/loadbook
-spring.datasource.username=loadbook_user
-spring.datasource.password=loadbook_password
-```
-
-3. Build the application:
-```bash
-./gradlew build
-```
-
-4. Run the application:
-```bash
-./gradlew bootRun
-```
-
-The application will start on `http://localhost:8080`
-
-## 📖 API Usage
-
-### Access API Documentation
-- **Swagger UI**: `http://localhost:8080/swagger-ui.html`
-- **OpenAPI JSON**: `http://localhost:8080/api-docs`
-
-### Load Management APIs
-
-#### Create Load
-```bash
+**Create Load**
+```http
 POST /api/v1/load
 Content-Type: application/json
 
@@ -115,7 +147,7 @@ Content-Type: application/json
   "shipperId": "SHIPPER_001",
   "facility": {
     "loadingPoint": "Mumbai Port",
-    "unloadingPoint": "Delhi Warehouse",
+    "unloadingPoint": "Delhi Warehouse", 
     "loadingDate": "2025-08-15T10:00:00",
     "unloadingDate": "2025-08-18T14:00:00"
   },
@@ -127,169 +159,206 @@ Content-Type: application/json
 }
 ```
 
-#### Get Loads with Filtering
-```bash
+**Query Loads**
+```http
 GET /api/v1/load?shipperId=SHIPPER_001&truckType=Container&status=POSTED&page=0&size=10
 ```
 
-#### Get Load by ID
-```bash
+**Get Load Details**
+```http
 GET /api/v1/load/{loadId}
 ```
 
-#### Update Load
-```bash
+**Update Load**
+```http
 PUT /api/v1/load/{loadId}
 Content-Type: application/json
-
-{
-  "productType": "Updated Electronics",
-  "comment": "Updated comment"
-}
 ```
 
-#### Delete Load
-```bash
+**Delete Load**
+```http
 DELETE /api/v1/load/{loadId}
 ```
 
-### Booking Management APIs
+### Booking Operations
 
-#### Create Booking
-```bash
+**Create Booking Request**
+```http
 POST /api/v1/booking
 Content-Type: application/json
 
 {
   "loadId": "load-uuid-here",
-  "transporterId": "TRANSPORTER_001",
+  "transporterId": "TRANSPORTER_001", 
   "proposedRate": 25000.50,
   "comment": "Can deliver within 3 days"
 }
 ```
 
-#### Get Bookings with Filtering
-```bash
+**Query Bookings**
+```http
 GET /api/v1/booking?loadId=load-uuid&transporterId=TRANSPORTER_001&status=PENDING&page=0&size=10
 ```
 
-#### Accept/Reject Booking
-```bash
+**Accept Booking**
+```http
 PATCH /api/v1/booking/{bookingId}/accept
+```
+
+**Reject Booking**
+```http
 PATCH /api/v1/booking/{bookingId}/reject
 ```
 
-## 🧪 Testing
+## Development and Testing
 
-### Run All Tests
+### Test Execution
 ```bash
+# Execute all tests
 ./gradlew test
-```
 
-### Run Specific Test Types
-```bash
-# Unit tests
-./gradlew test --tests "com.kunal.loadbook.service.*"
-
-# Integration tests
-./gradlew test --tests "com.kunal.loadbook.integration.*"
-
-# Controller tests
-./gradlew test --tests "com.kunal.loadbook.controller.*"
+# Run specific test categories
+./gradlew test --tests "com.kunal.loadbook.service.*"          # Unit tests
+./gradlew test --tests "com.kunal.loadbook.integration.*"     # Integration tests
+./gradlew test --tests "com.kunal.loadbook.controller.*"      # Controller tests
 ```
 
 ### Test Coverage
-The project maintains high test coverage (>60%) with:
-- **Unit Tests**: Service layer business logic testing
-- **Integration Tests**: End-to-end API testing
-- **Controller Tests**: HTTP endpoint testing
-- **Repository Tests**: Database interaction testing
+The application maintains comprehensive test coverage across multiple layers:
+- **Unit Tests**: Service layer business logic validation
+- **Integration Tests**: End-to-end API workflow testing  
+- **Controller Tests**: HTTP endpoint behavior verification
+- **Repository Tests**: Database interaction validation
 
-## 📊 Database Schema
+## Database Architecture
 
-### Tables
-- **loads**: Main load information with embedded facility details
-- **bookings**: Booking requests linked to loads via foreign key
+### Schema Design
+- **loads**: Primary table storing load information with embedded facility details
+- **bookings**: Booking requests table with foreign key relationship to loads
 
-### Key Relationships
-- One Load can have many Bookings (1:N)
-- Foreign key constraint: `bookings.load_id` → `loads.id`
+### Entity Relationships
+- **One-to-Many**: Load → Bookings (1:N relationship)
+- **Foreign Key**: `bookings.load_id` references `loads.id` with cascade rules
 
-### Constraints
-- Load status transitions: POSTED → BOOKED → CANCELLED
-- Booking status transitions: PENDING → ACCEPTED/REJECTED
-- Business rule validations through application logic
+### Data Integrity
+- Database-level constraints and validations
+- Application-layer business rule enforcement
+- Automated status transition management with audit trails
 
-## 🔒 Business Rules
+## Business Logic
 
-### Load Rules
-- Status defaults to POSTED when created
-- Cannot update/delete BOOKED loads
-- Cannot transition from CANCELLED to any other status
+### Load Lifecycle Management
+- **Initial State**: New loads default to POSTED status
+- **State Constraints**: BOOKED loads cannot be modified or deleted
+- **Valid Transitions**: POSTED → BOOKED → CANCELLED
+- **Terminal States**: CANCELLED loads cannot transition to other statuses
 
-### Booking Rules
-- Cannot create booking for CANCELLED loads
-- Only one booking per transporter per load
-- When booking is accepted, load status changes to BOOKED
-- Accepting a booking rejects all other pending bookings for that load
-- Cannot delete ACCEPTED bookings
-- If all bookings are deleted/rejected, load status reverts to POSTED
+### Booking Workflow Rules
+- **Availability Check**: Cannot create bookings for CANCELLED loads
+- **Uniqueness Constraint**: One booking per transporter per load
+- **Status Cascade**: Accepting a booking changes load status to BOOKED
+- **Automatic Rejection**: Accepting one booking rejects all other pending bookings
+- **Protection**: ACCEPTED bookings cannot be deleted
+- **State Reversion**: If all bookings are removed/rejected, load reverts to POSTED
 
-## 🚦 Status Codes
+## HTTP API Standards
 
-### HTTP Response Codes
-- `200 OK`: Successful GET, PUT, PATCH requests
-- `201 Created`: Successful POST requests
-- `204 No Content`: Successful DELETE requests
-- `400 Bad Request`: Validation errors, business rule violations
-- `404 Not Found`: Resource not found
-- `500 Internal Server Error`: Unexpected server errors
+### Response Codes
+- **200 OK**: Successful GET, PUT, PATCH operations
+- **201 Created**: Successful POST operations with resource creation
+- **204 No Content**: Successful DELETE operations
+- **400 Bad Request**: Input validation errors or business rule violations
+- **404 Not Found**: Requested resource does not exist
+- **500 Internal Server Error**: Unexpected system errors
 
-## 🔍 Monitoring & Health
+### Error Response Format
+```json
+{
+  "timestamp": "2025-08-06T12:00:00Z",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Validation failed for field 'weight'",
+  "path": "/api/v1/load"
+}
+```
 
-### Health Check
+## Deployment and Operations
+
+### Container Orchestration
 ```bash
-GET /actuator/health
+# Development deployment
+docker-compose up -d
+
+# Production deployment with optimized settings
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+# Service management
+docker-compose logs -f loadbook-app    # View application logs
+docker-compose logs -f postgres        # View database logs
+docker-compose down                     # Stop all services
 ```
 
-### Application Metrics
-```bash
-GET /actuator/metrics
-```
+### Environment Management
+The application supports multiple deployment profiles:
+- **Development**: `application-dev.properties` - H2 in-memory database
+- **Testing**: `application-test.properties` - Isolated test configurations
+- **Docker**: `application-docker.properties` - Containerized PostgreSQL setup
+- **Production**: Environment variables via docker-compose.prod.yml
 
-## 📝 Assumptions
+### Monitoring and Observability
+- **Health Check**: `/actuator/health` - Service health status
+- **Metrics**: `/actuator/metrics` - Application performance metrics  
+- **Info**: `/actuator/info` - Build and version information
+- **Docker Health**: Built-in container health checks for application and database
 
-1. **Authentication**: No authentication/authorization implemented (can be added with Spring Security)
-2. **Shipper/Transporter Management**: IDs are provided as strings (external system integration assumed)
-3. **Rate Management**: Single proposed rate per booking (can be extended for negotiations)
-4. **Notification System**: Not implemented (can be added with events/messaging)
-5. **File Uploads**: Not supported (can be added for load documents)
-6. **Audit Trail**: Basic timestamps provided (can be enhanced with Spring Data JPA Auditing)
+## Performance and Scalability
 
-## 🚀 Deployment
+### Application Optimization
+- **Stateless Design**: Enables horizontal scaling across multiple instances
+- **Connection Pooling**: HikariCP with optimized pool settings
+- **Query Optimization**: JPA criteria queries with proper indexing strategy
+- **Pagination**: Built-in support for large dataset handling
 
-### Production Considerations
-1. **Database**: Use PostgreSQL connection pooling (HikariCP included)
-2. **Security**: Add Spring Security for authentication/authorization
-3. **Monitoring**: Integrate with Prometheus/Grafana
-4. **Logging**: Configure structured logging with Logback
-5. **Performance**: Add caching with Redis
-6. **Scaling**: Deploy with Docker/Kubernetes
+### Database Optimization
+- **Connection Management**: Configured connection pooling parameters
+- **Query Performance**: Proper indexing on frequently queried columns
+- **Transaction Management**: Optimized transaction boundaries
+- **Resource Limits**: Memory and CPU constraints for production deployment
 
-### Docker Support
-```dockerfile
-FROM openjdk:17-jre-slim
-COPY build/libs/loadbook-0.0.1-SNAPSHOT.jar app.jar
-EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "/app.jar"]
-```
+## Security Considerations
 
-## 📞 Support
+### Data Protection
+- **Input Validation**: Comprehensive validation using Bean Validation annotations
+- **SQL Injection Prevention**: Parameterized queries through JPA/Hibernate
+- **Error Handling**: Structured error responses without sensitive information exposure
 
-For questions, issues, or contributions, please contact:
-- **Email**: careers@cargopro.ai
-- **GitHub**: [Repository Link]
+### Infrastructure Security
+- **Network Isolation**: Docker network segregation for service communication
+- **Environment Variables**: Externalized configuration for sensitive data
+- **Health Check Security**: Non-sensitive endpoint exposure for monitoring
 
-## 📜 License
+## System Requirements
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+### Development Environment
+- **Java Runtime**: OpenJDK 17 or higher
+- **Build Tool**: Gradle 7.x (wrapper included)
+- **Database**: PostgreSQL 12+ (H2 for testing)
+- **Container Runtime**: Docker 20.10+ and Docker Compose 2.0+
+
+### Production Environment
+- **CPU**: Minimum 2 cores (4 cores recommended)
+- **Memory**: Minimum 2GB RAM (4GB recommended)
+- **Storage**: SSD with 20GB+ available space
+- **Network**: Reliable internet connectivity for image pulls
+- **Database**: Dedicated PostgreSQL instance with connection pooling
+
+## Support Information
+
+For technical support, bug reports, or system questions:
+- **Contact**: kunalsinghdadhwal@gmail.com
+- **Repository**: https://github.com/kunalsinghdadhwal/loadbook
+- **Documentation**: Interactive API documentation available at `/swagger-ui.html`
+
+## License
+
+This project is licensed under the MIT License. See the LICENSE file for complete terms and conditions.

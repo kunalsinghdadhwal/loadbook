@@ -26,17 +26,14 @@ public class OpenApiConfig {
                                                 .version("1.0.0")
                                                 .contact(new Contact()
                                                                 .name("LoadBook Team")
-                                                                .email("support@loadbook.com")
-                                                                .url("https://github.com/kunal/loadbook"))
+                                                                .email("kunalsinghdadhwal@gmail.com")
+                                                                .url("https://github.com/kunalsinghdadhwal/loadbook"))
                                                 .license(new License()
                                                                 .name("MIT License")
                                                                 .url("https://opensource.org/licenses/MIT")))
                                 .servers(List.of(
                                                 new Server()
                                                                 .url("http://localhost:8080")
-                                                                .description("Development Server"),
-                                                new Server()
-                                                                .url("https://api.loadbook.com")
-                                                                .description("Production Server")));
+                                                                .description("Development Server")));
         }
 }
